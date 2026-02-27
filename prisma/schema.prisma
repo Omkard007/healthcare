@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String         @id @default(cuid())
+  clerkId       String         @unique
+  email         String         @unique
+  name          String?
+  createdAt     DateTime       @default(now())
+  healthProfile HealthProfile?
+  symptomLogs   SymptomLog[]
+  dietPlans     DietPlan[]
+  workoutPlans  WorkoutPlan[]
+  dailyLogs     DailyLog[]
+  alerts        Alert[]
+}
+
+model HealthProfile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  age            Int
+  gender         String
+  heightCm       Float
+  weightKg       Float
+  activityLevel  String
+  sleepHours     Float
+  conditions     String[]
+  allergies      String[]
+  smoking        Boolean  @default(false)
+  alcohol        Boolean  @default(false)
+  fitnessGoal    String
+  bmi            Float
+  bmr            Float
+  dailyCalories  Float
+  updatedAt      DateTime @updatedAt
+}
+
+model SymptomLog {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  symptoms          String[]
+  possibleCondition String
+  severity          String
+  advice            String
+  doctorNeeded      Boolean
+  createdAt         DateTime @default(now())
+}
+
+model DietPlan {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goal          String
+  breakfast     Json
+  lunch         Json
+  dinner        Json
+  snacks        Json
+  totalCalories Float
+  totalProtein  Float
+  createdAt     DateTime @default(now())
+}
+
+model WorkoutPlan {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goal       String
+  type       String
+  difficulty String
+  exercises  Json
+  createdAt  DateTime @default(now())
+}
+
+model DailyLog {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        DateTime @default(now())
+  weightKg    Float?
+  steps       Int?
+  waterLiters Float?
+  sleepHours  Float?
+  systolic    Int?
+  diastolic   Int?
+  glucoseMgDl Float?
+}
+
+model Alert {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  message   String
+  severity  String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
