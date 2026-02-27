@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VitalAI
 
-## Getting Started
+Your personal health operating system.
 
-First, run the development server:
+## Version 1 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+*   **Auth**: Secure Authentication with Clerk (Sign up, Sign in, Provider Logins).
+*   **Database**: PostgreSQL integration mapping Clerk IDs to local User records via webhooks.
+*   **Health Profile**: Comprehensive health profiling including vital settings, allergies, medical conditions, and lifestyle habits.
+*   **Calculations**: Automatic computation of BMI, BMR, and Daily Caloric targets based on user goals.
+*   **Dashboard Shell**: Functional sidebar, mobile menu, and header dashboard integrating core profile data.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup Instructions
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Prerequisites
+*   Node.js 18+
+*   PostgreSQL running locally (or remote DB)
+*   A Clerk account (https://clerk.com/)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Installation
 
-## Learn More
+1.  **Clone the repository and install dependencies**
+    ```bash
+    npm install
+    ```
 
-To learn more about Next.js, take a look at the following resources:
+2.  **Environment Variables**
+    Copy the example environment file:
+    ```bash
+    cp .env.example .env
+    ```
+    Fill in the values in `.env`:
+    *   Set `DATABASE_URL` to your PostgreSQL connection string.
+    *   Get the Clerk keys from your Clerk Dashboard (API Keys section).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3.  **Database Migration**
+    Initialize the database schema:
+    ```bash
+    npx prisma migrate dev --name init
+    npx prisma generate
+    ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4.  **Clerk Webhook Setup**
+    *   Go to your Clerk Dashboard -> Webhooks.
+    *   Add an endpoint pointing to `http://your-local-ip:3000/api/webhooks/clerk` (You may need ngrok or similar to expose your localhost to Clerk during development).
+    *   Subscribe to the `user.created` event.
+    *   Copy the Signing Secret and paste it as `WEBHOOK_SECRET` in your `.env` file.
 
-## Deploy on Vercel
+5.  **Run the development server**
+    ```bash
+    npm run dev
+    ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+6.  **Access the application**
+    Open your browser and visit `http://localhost:3000`.
