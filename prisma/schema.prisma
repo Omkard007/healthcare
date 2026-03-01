@@ -1,62 +1,60 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
-
 datasource db {
   provider = "postgresql"
 }
-
 model User {
   id            String         @id @default(cuid())
   clerkId       String         @unique
   email         String         @unique
   name          String?
   createdAt     DateTime       @default(now())
+  alerts        Alert[]
+  dailyLogs     DailyLog[]
+  dietPlans     DietPlan[]
   healthProfile HealthProfile?
   symptomLogs   SymptomLog[]
-  dietPlans     DietPlan[]
   workoutPlans  WorkoutPlan[]
-  dailyLogs     DailyLog[]
-  alerts        Alert[]
 }
 
 model HealthProfile {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  age            Int
-  gender         String
-  heightCm       Float
-  weightKg       Float
-  activityLevel  String
-  sleepHours     Float
-  conditions     String[]
-  allergies      String[]
-  smoking        Boolean  @default(false)
-  alcohol        Boolean  @default(false)
-  fitnessGoal    String
-  bmi            Float
-  bmr            Float
-  dailyCalories  Float
-  updatedAt      DateTime @updatedAt
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  age           Int
+  gender        String
+  heightCm      Float
+  weightKg      Float
+  activityLevel String
+  sleepHours    Float
+  conditions    String[]
+  allergies     String[]
+  smoking       Boolean  @default(false)
+  alcohol       Boolean  @default(false)
+  fitnessGoal   String
+  bmi           Float
+  bmr           Float
+  dailyCalories Float
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model SymptomLog {
   id                String   @id @default(cuid())
   userId            String
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   symptoms          String[]
   possibleCondition String
   severity          String
   advice            String
   doctorNeeded      Boolean
   createdAt         DateTime @default(now())
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model DietPlan {
   id            String   @id @default(cuid())
   userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   goal          String
   breakfast     Json
   lunch         Json
@@ -65,23 +63,23 @@ model DietPlan {
   totalCalories Float
   totalProtein  Float
   createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model WorkoutPlan {
   id         String   @id @default(cuid())
   userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   goal       String
   type       String
   difficulty String
   exercises  Json
   createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model DailyLog {
   id          String   @id @default(cuid())
   userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   date        DateTime @default(now())
   weightKg    Float?
   steps       Int?
@@ -90,15 +88,16 @@ model DailyLog {
   systolic    Int?
   diastolic   Int?
   glucoseMgDl Float?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Alert {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   type      String
   message   String
   severity  String
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

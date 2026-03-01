@@ -43,7 +43,7 @@ Your personal health operating system.
 4.  **Clerk Webhook Setup**
     *   Go to your Clerk Dashboard -> Webhooks.
     *   Add an endpoint pointing to `http://your-local-ip:3000/api/webhooks/clerk` (You may need ngrok or similar to expose your localhost to Clerk during development).
-    *   Subscribe to the `user.created` event.
+    *   Subscribe to the `user.created` event     
     *   Copy the Signing Secret and paste it as `WEBHOOK_SECRET` in your `.env` file.
 
 5.  **Run the development server**
