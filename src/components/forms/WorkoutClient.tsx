@@ -2,7 +2,7 @@
 
 import { useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Dumbbell, Clock, Flame, ChevronRight, Play, Trophy, Calendar, Sparkles, Sun, Timer, RotateCcw } from "lucide-react"
+import { Dumbbell, Clock, Flame, ChevronRight, Trophy, Calendar, Sparkles, Sun, Timer, RotateCcw } from "lucide-react"
 import Link from "next/link"
 import { getTodaysWorkout, WorkoutPlanData, Exercise } from "@/actions/workout.actions"
 
