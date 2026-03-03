@@ -2,8 +2,32 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Stethoscope, Search, AlertCircle, CheckCircle, Clock, ChevronRight, Brain, Activity } from "lucide-react"
+import {
+    Stethoscope,
+    Search,
+    AlertCircle,
+    CheckCircle,
+    Clock,
+    ChevronRight,
+    Brain,
+    Activity
+} from "lucide-react"
 import { createSymptomLog, SymptomLogData } from "@/actions/symptoms.actions"
+
+type Severity = "Mild" | "Moderate" | "Severe"
+
+interface AnalysisResult {
+    possibleCondition: string
+    severity: Severity
+    advice: string
+    doctorNeeded: boolean
+    confidence: number
+    riskScore: number
+}
+
+/* ============================
+   MEDICAL TRIAGE ENGINE
+============================ */
 
 const symptomOptions = [
     "Headache", "Fever", "Cough", "Fatigue", "Nausea", "Body Ache",
@@ -11,47 +35,182 @@ const symptomOptions = [
     "Runny Nose", "Abdominal Pain", "Joint Pain", "Back Pain", "Rash",
 ]
 
-// Simple rule-based analysis for MVP (AI integration in v2)
-function analyzeSymptoms(symptoms: string[]) {
-    const s = symptoms.map(x => x.toLowerCase())
-    let possibleCondition = "General Discomfort"
-    let severity = "Mild"
-    let advice = "Rest well, stay hydrated, and monitor your symptoms."
-    let doctorNeeded = false
+const normalize = (arr: string[]) =>
+    arr.map(s => s.toLowerCase())
 
-    if (s.includes("chest pain") || s.includes("shortness of breath")) {
-        possibleCondition = "Possible Cardiac / Respiratory Issue"
-        severity = "Severe"
-        advice = "Seek immediate medical attention. These symptoms can be serious."
-        doctorNeeded = true
-    } else if (s.includes("fever") && s.includes("cough") && s.includes("body ache")) {
-        possibleCondition = "Viral Fever / Flu"
-        severity = "Moderate"
-        advice = "Rest, hydrate, and take paracetamol if needed. See a doctor if fever persists beyond 3 days."
-        doctorNeeded = false
-    } else if (s.includes("headache") && s.includes("fatigue")) {
-        possibleCondition = "Tension Headache / Dehydration"
-        severity = "Mild"
-        advice = "Drink water, rest in a quiet room. Consider OTC pain relief if needed."
-        doctorNeeded = false
-    } else if (s.includes("cough") && s.includes("sore throat")) {
-        possibleCondition = "Common Cold"
-        severity = "Mild"
-        advice = "Warm fluids, throat lozenges, and rest. Should resolve in 5–7 days."
-        doctorNeeded = false
-    } else if (s.includes("dizziness") && s.includes("nausea")) {
-        possibleCondition = "Vertigo / Inner Ear Issue"
-        severity = "Moderate"
-        advice = "Avoid sudden movements. Consult a doctor if recurring."
-        doctorNeeded = true
-    } else if (symptoms.length >= 5) {
-        severity = "Moderate"
-        advice = "Multiple symptoms detected. Rest and monitor closely. Consult a doctor if symptoms worsen."
-        doctorNeeded = true
+function analyzeSymptoms(symptoms: string[]): AnalysisResult {
+    const s = normalize(symptoms)
+
+    let riskScore = 0
+    let confidence = 40
+   let severity: Severity = "Mild" as Severity
+    let doctorNeeded = false
+    let possibleCondition = "Non-Specific Viral / General Condition"
+    let advice =
+        "Rest adequately, maintain hydration, light diet, and monitor symptoms for 48 hours."
+
+    /* ======================
+       EMERGENCY OVERRIDES
+    ====================== */
+
+    if (s.includes("chest pain") && s.includes("shortness of breath")) {
+        return {
+            possibleCondition: "Possible Cardiac Event (Heart-related emergency)",
+            severity: "Severe",
+            doctorNeeded: true,
+            riskScore: 95,
+            confidence: 90,
+            advice:
+                "Seek emergency medical care immediately. Do not delay. This may indicate heart attack or serious lung condition."
+        }
     }
 
-    return { possibleCondition, severity, advice, doctorNeeded }
+    if (s.includes("shortness of breath")) {
+        return {
+            possibleCondition: "Respiratory Distress / Asthma / Lung Infection",
+            severity: "Severe",
+            doctorNeeded: true,
+            riskScore: 90,
+            confidence: 85,
+            advice:
+                "Seek urgent medical attention. Difficulty breathing requires immediate evaluation."
+        }
+    }
+
+    /* ======================
+       COMBINATION LOGIC
+    ====================== */
+
+    if (s.includes("fever") && s.includes("cough") && s.includes("body ache")) {
+        possibleCondition = "Influenza (Flu)"
+        severity = "Moderate"
+        riskScore = 70
+        confidence = 85
+        advice =
+            "Rest, fluids, paracetamol 500mg if fever above 100°F (consult doctor before use), warm fluids, and monitor for 3 days."
+    }
+
+    if (s.includes("fever") && s.includes("rash")) {
+        possibleCondition = "Viral Fever / Possible Dengue-like Illness"
+        severity = "Moderate"
+        doctorNeeded = true
+        riskScore = 75
+        confidence = 80
+        advice =
+            "Get blood tests if fever persists. Monitor platelet count. Avoid NSAIDs unless prescribed."
+    }
+
+    if (s.includes("cough") && s.includes("sore throat") && s.includes("runny nose")) {
+        possibleCondition = "Common Cold"
+        severity = "Mild"
+        riskScore = 40
+        confidence = 90
+        advice =
+            "Steam inhalation, warm salt water gargle, hydration, rest. Usually resolves in 5–7 days."
+    }
+
+    if (s.includes("headache") && s.includes("fatigue") && s.includes("dizziness")) {
+        possibleCondition = "Dehydration / Low Blood Pressure"
+        severity = "Mild"
+        riskScore = 35
+        confidence = 75
+        advice =
+            "Drink ORS, increase fluids, avoid sudden standing, rest well."
+    }
+
+    if (s.includes("abdominal pain") && s.includes("nausea")) {
+        possibleCondition = "Gastritis / Food-related Irritation"
+        severity = "Moderate"
+        riskScore = 55
+        confidence = 80
+        advice =
+            "Eat light meals, avoid oily/spicy food, oral rehydration. Consult doctor if pain severe."
+    }
+
+    /* ======================
+       SINGLE SYMPTOM LOGIC
+    ====================== */
+
+    if (symptoms.length === 1) {
+        switch (s[0]) {
+            case "headache":
+                possibleCondition = "Tension Headache"
+                advice = "Hydrate, reduce screen time, rest."
+                confidence = 70
+                break
+
+            case "fever":
+                possibleCondition = "Mild Viral Fever"
+                advice = "Monitor temperature. Hydrate well."
+                confidence = 65
+                break
+
+            case "cough":
+                possibleCondition = "Irritative / Mild Viral Cough"
+                advice = "Steam inhalation, honey (if non-diabetic)."
+                confidence = 60
+                break
+
+            case "fatigue":
+                possibleCondition = "Lifestyle Fatigue / Sleep Deficit"
+                advice = "Sleep 7–8 hours, balanced diet."
+                confidence = 60
+                break
+
+            case "nausea":
+                possibleCondition = "Acidity / Mild Gastric Disturbance"
+                advice = "Small frequent meals, avoid oily food."
+                confidence = 60
+                break
+
+            case "back pain":
+                possibleCondition = "Muscular Strain"
+                advice = "Hot compress, posture correction."
+                confidence = 70
+                break
+
+            case "joint pain":
+                possibleCondition = "Inflammatory / Overuse Joint Pain"
+                advice = "Rest, gentle stretching."
+                confidence = 65
+                break
+
+            case "rash":
+                possibleCondition = "Allergic Reaction"
+                advice = "Avoid allergen, apply soothing lotion."
+                confidence = 65
+                break
+        }
+    }
+
+    /* ======================
+       ESCALATION RULES
+    ====================== */
+
+    if (symptoms.length >= 5 && severity !== "Severe") {
+        severity = "Moderate"
+        doctorNeeded = true
+        riskScore += 15
+        advice =
+            "Multiple symptoms detected. Seek medical evaluation if no improvement in 48 hours."
+    }
+
+    if (riskScore >= 80) severity = "Severe"
+    else if (riskScore >= 50) severity = "Moderate"
+
+    return {
+        possibleCondition,
+        severity,
+        advice,
+        doctorNeeded,
+        confidence,
+        riskScore
+    }
 }
+
+/* ============================
+   UI COMPONENT
+============================ */
 
 const severityColor: Record<string, string> = {
     Mild: "bg-emerald-100 text-emerald-700 border-emerald-200",
@@ -63,23 +222,27 @@ interface Props {
     recentLogs: SymptomLogData[]
 }
 
-export function SymptomsClient({ recentLogs: initialLogs }: Props) {
+export function SymptomsClient({ recentLogs }: Props) {
     const router = useRouter()
     const [selected, setSelected] = useState<string[]>([])
-    const [result, setResult] = useState<ReturnType<typeof analyzeSymptoms> | null>(null)
+    const [result, setResult] = useState<AnalysisResult | null>(null)
     const [isPending, startTransition] = useTransition()
-    const [logs, setLogs] = useState<SymptomLogData[]>(initialLogs)
+    const [logs, setLogs] = useState<SymptomLogData[]>(recentLogs)
 
     const toggle = (s: string) =>
-        setSelected(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])
+        setSelected(prev =>
+            prev.includes(s)
+                ? prev.filter(x => x !== s)
+                : [...prev, s]
+        )
 
     const analyze = () => {
-        if (selected.length === 0) return
+        if (!selected.length) return
+
         startTransition(async () => {
             const analysis = analyzeSymptoms(selected)
             setResult(analysis)
 
-            // Save to DB
             await createSymptomLog({
                 symptoms: selected,
                 possibleCondition: analysis.possibleCondition,
@@ -88,7 +251,6 @@ export function SymptomsClient({ recentLogs: initialLogs }: Props) {
                 doctorNeeded: analysis.doctorNeeded,
             })
 
-            // Optimistically prepend to local log list
             const newLog: SymptomLogData = {
                 id: Date.now().toString(),
                 symptoms: selected,
@@ -98,6 +260,7 @@ export function SymptomsClient({ recentLogs: initialLogs }: Props) {
                 doctorNeeded: analysis.doctorNeeded,
                 createdAt: new Date(),
             }
+
             setLogs(prev => [newLog, ...prev].slice(0, 10))
             router.refresh()
         })

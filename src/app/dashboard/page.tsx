@@ -1,6 +1,6 @@
 import Link from "next/link"
 import {
-    Activity, Heart, Droplets, Moon, Footprints, Flame,
+    Activity, Droplets, Moon, Footprints, Flame,
     TrendingUp, ChevronRight, Clock, Target,
     AlertCircle, CheckCircle2, Zap, Calendar, ArrowUp, ArrowDown
 } from "lucide-react"
@@ -22,13 +22,21 @@ const weeklyData = [
     { day: "Sun", pct: 88 },
 ]
 
+function getGreeting(): string {
+    const hour = new Date().getHours()
+    if (hour < 12) return "Good morning"
+    if (hour < 17) return "Good afternoon"
+    return "Good evening"
+}
+
 export default async function DashboardPage() {
     const today = new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })
 
-    const [profileResult, trackerResult, alertsResult] = await Promise.all([
+    const [profileResult, trackerResult, alertsResult, user] = await Promise.all([
         getHealthProfile(),
         getWeeklyLogs(),
         getAlerts(),
+        currentUser(),
     ])
 
     const profile = profileResult.data ?? null
@@ -36,8 +44,8 @@ export default async function DashboardPage() {
     const unreadAlerts = (alertsResult.data ?? []).filter(a => !a.read)
 
     const hasProfile = !!profile
-    const user = await currentUser()
     const firstName = user?.firstName ?? "there"
+    const greeting = getGreeting()
 
     const vitals = [
         {
@@ -125,6 +133,7 @@ export default async function DashboardPage() {
 
     return (
         <div className="space-y-6 animate-fade-in-up">
+
             {/* Greeting */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -132,7 +141,7 @@ export default async function DashboardPage() {
                         <Calendar className="w-4 h-4" /> {today}
                     </p>
                     <h2 className="text-2xl font-extrabold text-slate-800 mt-0.5">
-                        Good morning, {firstName} 👋
+                        {greeting}, {firstName} 👋
                     </h2>
                     <p className="text-slate-500 text-sm mt-0.5">
                         {hasProfile
@@ -148,10 +157,10 @@ export default async function DashboardPage() {
                 </Link>
             </div>
 
-            {/* If no profile: show banner */}
+            {/* Profile completion banner */}
             {!hasProfile && <ProfileCompletionBanner />}
 
-            {/* BMI + Calories */}
+            {/* BMI + Calories + Goal + Alerts */}
             {hasProfile && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
                     <BMICard bmi={profile.bmi} heightCm={profile.heightCm} weightKg={profile.weightKg} />
@@ -163,8 +172,12 @@ export default async function DashboardPage() {
                             <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">Health Goal</span>
                             <Target className="w-4 h-4 text-emerald-500" />
                         </div>
-                        <div className="text-2xl font-extrabold text-emerald-700 capitalize">{profile.fitnessGoal.replace("_", " ")}</div>
-                        <p className="text-xs text-slate-500 mt-1">Calorie target: {Math.round(profile.dailyCalories).toLocaleString()} kcal/day</p>
+                        <div className="text-2xl font-extrabold text-emerald-700 capitalize">
+                            {profile.fitnessGoal.replace(/_/g, " ")}
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1">
+                            Calorie target: {Math.round(profile.dailyCalories).toLocaleString()} kcal/day
+                        </p>
                         <div className="mt-3 flex items-center gap-1 text-xs text-emerald-600 font-medium">
                             <CheckCircle2 className="w-3.5 h-3.5" /> Profile complete
                         </div>
@@ -195,7 +208,7 @@ export default async function DashboardPage() {
                         return (
                             <div key={v.label} className="stat-card">
                                 <div className={`w-9 h-9 rounded-xl ${v.color} flex items-center justify-center mb-3`}>
-                                    <Icon className={`w-4.5 h-4.5 ${v.iconColor}`} />
+                                    <Icon className={`w-4 h-4 ${v.iconColor}`} />
                                 </div>
                                 <div className="text-2xl font-extrabold text-slate-800">{v.value}</div>
                                 <div className="flex items-center justify-between mt-1">
@@ -214,8 +227,10 @@ export default async function DashboardPage() {
                 </div>
             </div>
 
-            {/* Daily progress */}
+            {/* Daily progress + Alerts feed */}
             <div className="grid lg:grid-cols-3 gap-6">
+
+                {/* Daily progress */}
                 <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
                     <div className="flex items-center justify-between mb-5">
                         <h3 className="text-base font-bold text-slate-700">Daily Progress</h3>
@@ -234,10 +249,15 @@ export default async function DashboardPage() {
                                             <span className="text-sm font-medium text-slate-700">{g.label}</span>
                                         </div>
                                         <span className="text-sm font-semibold text-slate-800">
-                                            {typeof g.current === "number" && g.current > 999 ? g.current.toLocaleString() : g.current}
+                                            {typeof g.current === "number" && g.current > 999
+                                                ? g.current.toLocaleString()
+                                                : g.current}
                                             {g.unit && ` ${g.unit}`}
                                             <span className="text-slate-400 font-normal">
-                                                {" "}/ {typeof g.target === "number" && g.target > 999 ? g.target.toLocaleString() : g.target}{g.unit && ` ${g.unit}`}
+                                                {" "}/ {typeof g.target === "number" && g.target > 999
+                                                    ? g.target.toLocaleString()
+                                                    : g.target}
+                                                {g.unit && ` ${g.unit}`}
                                             </span>
                                         </span>
                                     </div>
@@ -250,14 +270,16 @@ export default async function DashboardPage() {
                         })}
                     </div>
 
-                    {/* Weekly overview mini-chart */}
+                    {/* Weekly activity mini-chart */}
                     <div className="mt-6 border-t border-slate-100 pt-5">
                         <p className="text-xs text-slate-500 font-medium mb-3">Weekly Activity Score</p>
                         <div className="flex items-end gap-1.5 h-16">
                             {weeklyData.map(d => (
                                 <div key={d.day} className="flex-1 flex flex-col items-center gap-1">
                                     <div
-                                        className={`w-full rounded-t-md transition-all duration-500 ${d.pct >= 80 ? "bg-emerald-400" : d.pct >= 60 ? "bg-blue-400" : "bg-slate-200"}`}
+                                        className={`w-full rounded-t-md transition-all duration-500 ${
+                                            d.pct >= 80 ? "bg-emerald-400" : d.pct >= 60 ? "bg-blue-400" : "bg-slate-200"
+                                        }`}
                                         style={{ height: `${d.pct * 0.56}px` }}
                                     />
                                     <span className="text-[9px] text-slate-400">{d.day}</span>
@@ -267,7 +289,7 @@ export default async function DashboardPage() {
                     </div>
                 </div>
 
-                {/* Activity / Alerts feed */}
+                {/* Unread Alerts feed */}
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
                     <div className="flex items-center justify-between mb-5">
                         <h3 className="text-base font-bold text-slate-700">Unread Alerts</h3>
@@ -285,8 +307,20 @@ export default async function DashboardPage() {
                                     {i < Math.min(unreadAlerts.length, 4) - 1 && (
                                         <div className="absolute left-3.5 top-7 bottom-0 w-px bg-slate-100" />
                                     )}
-                                    <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 z-10 ${alert.severity === "warning" ? "bg-amber-100" : alert.severity === "critical" ? "bg-red-100" : "bg-blue-100"}`}>
-                                        <AlertCircle className={`w-3.5 h-3.5 ${alert.severity === "warning" ? "text-amber-600" : alert.severity === "critical" ? "text-red-600" : "text-blue-600"}`} />
+                                    <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 z-10 ${
+                                        alert.severity === "warning"
+                                            ? "bg-amber-100"
+                                            : alert.severity === "critical"
+                                                ? "bg-red-100"
+                                                : "bg-blue-100"
+                                    }`}>
+                                        <AlertCircle className={`w-3.5 h-3.5 ${
+                                            alert.severity === "warning"
+                                                ? "text-amber-600"
+                                                : alert.severity === "critical"
+                                                    ? "text-red-600"
+                                                    : "text-blue-600"
+                                        }`} />
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-sm font-semibold text-slate-700">{alert.type}</p>
@@ -296,13 +330,16 @@ export default async function DashboardPage() {
                             ))}
                         </div>
                     )}
-                    <Link href="/dashboard/alerts" className="mt-2 flex items-center justify-center gap-1 text-xs text-blue-600 font-medium border border-blue-100 rounded-lg py-2 hover:bg-blue-50 transition-colors">
+                    <Link
+                        href="/dashboard/alerts"
+                        className="mt-2 flex items-center justify-center gap-1 text-xs text-blue-600 font-medium border border-blue-100 rounded-lg py-2 hover:bg-blue-50 transition-colors"
+                    >
                         View all alerts <ChevronRight className="w-3 h-3" />
                     </Link>
                 </div>
             </div>
 
-            {/* Alerts strip — shown if unread critical/warning */}
+            {/* Critical/warning alert strip */}
             {unreadAlerts.some(a => a.severity === "warning" || a.severity === "critical") && (
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
@@ -312,7 +349,10 @@ export default async function DashboardPage() {
                             <p className="text-xs text-amber-700">{unreadAlerts[0]?.message}</p>
                         </div>
                     </div>
-                    <Link href="/dashboard/alerts" className="shrink-0 text-xs font-semibold text-amber-700 bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-lg hover:bg-amber-200 transition-colors">
+                    <Link
+                        href="/dashboard/alerts"
+                        className="shrink-0 text-xs font-semibold text-amber-700 bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-lg hover:bg-amber-200 transition-colors"
+                    >
                         View Alerts
                     </Link>
                 </div>
