@@ -6,7 +6,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "VitalAI — Your Personal Health OS",
+  title: "Vital — Your Personal Health OS",
   description: "AI-powered health management with personalized diet, workout, and symptom analysis designed for Indian lifestyles.",
 };
 

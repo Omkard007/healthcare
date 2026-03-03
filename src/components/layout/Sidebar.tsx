@@ -29,7 +29,7 @@ export function Sidebar() {
                         <Activity className="w-4.5 h-4.5 text-white" />
                     </div>
                     <div>
-                        <span className="text-lg font-extrabold text-slate-900 leading-none block">VitalAI</span>
+                        <span className="text-lg font-extrabold text-slate-900 leading-none block">Vital</span>
                         <span className="text-[10px] text-slate-400 font-medium tracking-wide">Health Dashboard</span>
                     </div>
                 </Link>

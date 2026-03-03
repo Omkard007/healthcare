@@ -16,7 +16,7 @@ export default function CTA() {
             Join thousands who transformed their health with VitalAI. It&apos;s free.
           </p>
           <Link
-            href="/signup"
+            href="/dashboard"
             className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl font-semibold transition-all shadow-lg shadow-emerald-500/30 text-lg"
           >
             Create Free Account

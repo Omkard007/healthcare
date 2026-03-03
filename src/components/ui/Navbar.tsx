@@ -53,7 +53,7 @@ export default function Navbar() {
                 <Activity className="w-[18px] h-[18px] text-white relative z-10" />
               </div>
               <span className="text-[17px] font-semibold tracking-tight text-white">
-                Vital<span className="text-emerald-400">AI</span>
+                Vital
               </span>
             </Link>
 
@@ -101,16 +101,11 @@ export default function Navbar() {
                 <div className="flex items-center gap-3">
                   {/* Divider */}
                   <div className="hidden sm:block w-px h-5 bg-white/10" />
-                  <div className="ring-2 ring-white/10 hover:ring-emerald-500/40 rounded-full transition-all duration-300">
+                  
                     <UserButton
-                      appearance={{
-                        elements: {
-                          avatarBox: "w-8 h-8",
-                        },
-                      }}
                     />
                   </div>
-                </div>
+                
               </SignedIn>
 
               {/* Mobile menu toggle */}

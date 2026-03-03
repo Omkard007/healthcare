@@ -217,12 +217,7 @@ export function WorkoutClient({ plan, dayName, isSunday }: Props) {
                                 </div>
                             </div>
 
-                            {/* Start button for first exercise */}
-                            {idx === 0 && (
-                                <button className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-colors">
-                                    <Play className="w-3 h-3 fill-white" /> Start
-                                </button>
-                            )}
+                           
                         </div>
                     ))}
                 </div>
