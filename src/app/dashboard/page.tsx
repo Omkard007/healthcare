@@ -10,6 +10,7 @@ import { CalorieCard } from "@/components/dashboard/CalorieCard"
 import { getHealthProfile } from "@/actions/profile.actions"
 import { getWeeklyLogs } from "@/actions/tracker.actions"
 import { getAlerts } from "@/actions/alerts.actions"
+import { currentUser } from "@clerk/nextjs/server"
 
 const weeklyData = [
     { day: "Mon", pct: 85 },
@@ -35,7 +36,8 @@ export default async function DashboardPage() {
     const unreadAlerts = (alertsResult.data ?? []).filter(a => !a.read)
 
     const hasProfile = !!profile
-    const firstName = profile ? "There" : "there" // name is on User model, not profile
+    const user = await currentUser()
+    const firstName = user?.firstName ?? "there"
 
     const vitals = [
         {
