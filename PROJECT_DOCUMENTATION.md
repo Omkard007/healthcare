@@ -1,12 +1,12 @@
-# VitalAI - Project Documentation
+# Vital - Project Documentation
 
 ## Executive Summary
 
-**VitalAI** is a modern, full-stack healthcare management platform built with Next.js, designed specifically for Indian lifestyles. It empowers users to take control of their health by tracking daily vitals, managing personalized diets and workouts, analyzing symptoms, and receiving intelligent health alerts.
+**Vital** is a modern, full-stack healthcare management platform built with Next.js, designed specifically for Indian lifestyles. It empowers users to take control of their health by tracking daily vitals, managing personalized diets and workouts, analyzing symptoms, and receiving intelligent health alerts.
 
 **Current Version**: 0.1.0 (Beta)
 **Status**: Active Development
-**Team**: VitalAI Development Team
+**Team**: Vital Development Team
 **Last Updated**: April 2024
 
 ---
@@ -896,15 +896,15 @@ docs: update installation guide
 
 ## Conclusion
 
-VitalAI represents a modern approach to personal health management, combining cutting-edge web technologies with thoughtful healthcare features. The platform is designed for scalability, maintainability, and user-centric design.
+Vital represents a modern approach to personal health management, combining cutting-edge web technologies with thoughtful healthcare features. The platform is designed for scalability, maintainability, and user-centric design.
 
-By focusing on Indian market needs and leveraging AI-powered insights, VitalAI aims to become the go-to health management platform for health-conscious Indian users.
+By focusing on Indian market needs and leveraging AI-powered insights, Vital aims to become the go-to health management platform for health-conscious Indian users.
 
 ---
 
 **Document Version**: 2.0
 **Last Updated**: April 2024
-**Maintained By**: VitalAI Development Team
+**Maintained By**: Vital Development Team
 **Status**: Active Development (Beta)
 
-For questions or updates, contact: dev@vitalai.com
+For questions or updates, contact: dev@vital.com
